@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/robotastic/trunk-recorder:edge@sha256:f7b8fdf856d685c357daeac12bfcbac44fc800eaea5eb071fb8c44e45b561035
+ARG BASE_IMAGE=ghcr.io/robotastic/trunk-recorder:latest
 FROM ${BASE_IMAGE}
 
 ARG TARGETPLATFORM
@@ -174,5 +174,20 @@ chmod +x /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish
 __DOCKER__EOF__
 
 ENV S6_CMD_RECEIVE_SIGNALS=1
+
+# Build MQTT Stats
+RUN apt update && export DEBIAN_FRONTEND=noninteractive && \ 
+    apt install -y libpaho-mqtt-dev libpaho-mqtt1.3  libpaho-mqttpp-dev libpaho-mqttpp3-1  && rm -rf /var/lib/apt/lists/*
+    
+WORKDIR /src/trunk-recorder-mqtt-status
+
+COPY . .
+
+WORKDIR /src/trunk-recorder-mqtt-status/build
+
+RUN cmake .. && make install
+
+WORKDIR /app
+
 
 ENTRYPOINT ["/init"]
