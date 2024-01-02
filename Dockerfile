@@ -243,7 +243,6 @@ WORKDIR /src
 
 RUN git clone https://github.com/robotastic/trunk-recorder
 
-
 WORKDIR /src/trunk-recorder/build
 
 RUN cmake .. && make -j$(nproc) && make install
