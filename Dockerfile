@@ -1,79 +1,5 @@
 FROM ubuntu:22.04 AS base
 
-# Install docker for passing the socket to allow for intercontainer exec
-RUN apt-get update && \
-  apt-get -y upgrade &&\
-  export DEBIAN_FRONTEND=noninteractive && \
-  apt-get install -y \
-    apt-transport-https \
-    build-essential \
-    ca-certificates \
-    cmake \
-    curl \
-    docker.io \
-    fdkaac \
-    git \
-    gnupg \
-    gnuradio \
-    gnuradio-dev \
-    gr-funcube \
-    gr-iqbal \
-    libairspy-dev \
-    libairspyhf-dev \
-    libbladerf-dev \
-    libboost-all-dev \
-    libcurl4-openssl-dev \
-    libfreesrp-dev \
-    libgmp-dev \
-    libhackrf-dev \
-    libmirisdr-dev \
-    liborc-0.4-dev \
-    libpthread-stubs0-dev \
-    librtlsdr-dev \
-    libsndfile1-dev \
-    libsoapysdr-dev \
-    libssl-dev \
-    libuhd-dev \
-    libusb-dev \
-    libxtrx-dev \
-    pkg-config \
-    software-properties-common \
-    sox \
-    wget && \
-  rm -rf /var/lib/apt/lists/*
-
-# Fix the error message level for SmartNet
-
-RUN sed -i 's/log_level = debug/log_level = info/g' /etc/gnuradio/conf.d/gnuradio-runtime.conf
-
-# Compile gr-osmosdr ourselves using a fork with various patches included
-RUN cd /tmp && \
-  git clone https://github.com/racerxdl/gr-osmosdr.git && \
-  cd gr-osmosdr && \
-  mkdir build && \
-  cd build && \
-  cmake -DENABLE_NONFREE=TRUE .. && \
-  make -j$(nproc) && \
-  make install && \
-  ldconfig && \
-  cd /tmp && \
-  rm -rf gr-osmosdr
-
-WORKDIR /src
-
-COPY . .
-
-WORKDIR /src/build
-
-RUN cmake .. && make -j$(nproc) && make install
-
-#USER nobody
-
-WORKDIR /app
-
-# GNURadio requires a place to store some files, can only be set via $HOME env var.
-ENV HOME=/tmp
-
 ARG TARGETPLATFORM
 ARG TARGETARCH
 
@@ -136,19 +62,19 @@ RUN PLATFORM=$(echo ${TARGETPLATFORM} | awk -F/ '{print $1}') && \
     cd - && \
     rm -rf /tmp/sdrplay.run /tmp/sdrplay
 
-# renovate: datasource=github-tags depName=pothosware/SoapySDRPlay3
-ARG SOAPYSDRPLAY3_VERSION=soapy-sdrplay3-0.4.2
-RUN git clone https://github.com/pothosware/SoapySDRPlay3.git -b ${SOAPYSDRPLAY3_VERSION} /tmp/SoapySDRPlay3 && \
-    OLDPWD=$(pwd) && \
-    cd /tmp/SoapySDRPlay3 && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
-    make -j$(nproc) && \
-    make install && \
-    ldconfig && \
-    cd "${OLDPWD}" && \
-    rm -rf /tmp/SoapySDRPlay3
+# # renovate: datasource=github-tags depName=pothosware/SoapySDRPlay3
+# ARG SOAPYSDRPLAY3_VERSION=soapy-sdrplay3-0.4.2
+# RUN git clone https://github.com/pothosware/SoapySDRPlay3.git -b ${SOAPYSDRPLAY3_VERSION} /tmp/SoapySDRPlay3 && \
+#     OLDPWD=$(pwd) && \
+#     cd /tmp/SoapySDRPlay3 && \
+#     mkdir build && \
+#     cd build && \
+#     cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
+#     make -j$(nproc) && \
+#     make install && \
+#     ldconfig && \
+#     cd "${OLDPWD}" && \
+#     rm -rf /tmp/SoapySDRPlay3
 
 # renovate: datasource=github-releases depName=just-containers/s6-overlay
 ARG S6_OVERLAY_VERSION=v3.1.6.0
@@ -247,6 +173,87 @@ chmod +x /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish
 __DOCKER__EOF__
 
 ENV S6_CMD_RECEIVE_SIGNALS=1
+
+#######################################
+
+# build trunk-recorder
+
+
+# Install docker for passing the socket to allow for intercontainer exec
+RUN apt-get update && \
+  apt-get -y upgrade &&\
+  export DEBIAN_FRONTEND=noninteractive && \
+  apt-get install -y \
+    apt-transport-https \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    docker.io \
+    fdkaac \
+    git \
+    gnupg \
+    gnuradio \
+    gnuradio-dev \
+    gr-funcube \
+    gr-iqbal \
+    libairspy-dev \
+    libairspyhf-dev \
+    libbladerf-dev \
+    libboost-all-dev \
+    libcurl4-openssl-dev \
+    libfreesrp-dev \
+    libgmp-dev \
+    libhackrf-dev \
+    libmirisdr-dev \
+    liborc-0.4-dev \
+    libpthread-stubs0-dev \
+    librtlsdr-dev \
+    libsndfile1-dev \
+    libsoapysdr-dev \
+    libssl-dev \
+    libuhd-dev \
+    libusb-dev \
+    libxtrx-dev \
+    pkg-config \
+    software-properties-common \
+    sox \
+    wget && \
+  rm -rf /var/lib/apt/lists/*
+
+# Fix the error message level for SmartNet
+
+RUN sed -i 's/log_level = debug/log_level = info/g' /etc/gnuradio/conf.d/gnuradio-runtime.conf
+
+# Compile gr-osmosdr ourselves using a fork with various patches included
+RUN cd /tmp && \
+  git clone https://github.com/racerxdl/gr-osmosdr.git && \
+  cd gr-osmosdr && \
+  mkdir build && \
+  cd build && \
+  cmake -DENABLE_NONFREE=TRUE .. && \
+  make -j$(nproc) && \
+  make install && \
+  ldconfig && \
+  cd /tmp && \
+  rm -rf gr-osmosdr
+
+WORKDIR /src
+
+RUN git clone https://github.com/robotastic/trunk-recorder
+
+WORKDIR /src/trunk-recorder/build
+
+RUN cmake .. && make -j$(nproc) && make install
+
+#USER nobody
+
+WORKDIR /app
+
+# GNURadio requires a place to store some files, can only be set via $HOME env var.
+ENV HOME=/tmp
+
+###################
 
 # Build MQTT Stats
 RUN apt update && export DEBIAN_FRONTEND=noninteractive && \ 
