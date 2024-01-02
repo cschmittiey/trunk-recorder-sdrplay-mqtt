@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/robotastic/trunk-recorder:latest
+ARG BASE_IMAGE=ghcr.io/robotastic/trunk-recorder:edge
 FROM ${BASE_IMAGE}
 
 ARG TARGETPLATFORM
@@ -179,9 +179,9 @@ ENV S6_CMD_RECEIVE_SIGNALS=1
 RUN apt update && export DEBIAN_FRONTEND=noninteractive && \ 
     apt install -y libpaho-mqtt-dev libpaho-mqtt1.3  libpaho-mqttpp-dev libpaho-mqttpp3-1  && rm -rf /var/lib/apt/lists/*
     
-WORKDIR /src/trunk-recorder-mqtt-status
+WORKDIR /src/
 
-COPY . .
+RUN git clone https://github.com/taclane/trunk-recorder-mqtt-status
 
 WORKDIR /src/trunk-recorder-mqtt-status/build
 
