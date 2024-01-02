@@ -243,9 +243,6 @@ WORKDIR /src
 
 RUN git clone https://github.com/robotastic/trunk-recorder
 
-WORKDIR /src/trunk-recorder
-
-RUN sed -i 's!trunk-recorder/!!g' CMakeLists.txt
 
 WORKDIR /src/trunk-recorder/build
 
@@ -267,6 +264,10 @@ RUN apt update && export DEBIAN_FRONTEND=noninteractive && \
 WORKDIR /src/
 
 RUN git clone https://github.com/taclane/trunk-recorder-mqtt-status
+
+WORKDIR /src/trunk-recorder-mqtt-status/
+
+RUN sed -i 's!trunk-recorder/!!g' CMakeLists.txt
 
 WORKDIR /src/trunk-recorder-mqtt-status/build
 
