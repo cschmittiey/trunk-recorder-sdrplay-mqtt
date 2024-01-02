@@ -1,4 +1,4 @@
-# Trunk Recorder with SoapySDRPlay3
+# Trunk Recorder with SDRPlay API and MQTT Status Plugin
 
 These are images of [robotastic/trunk-recorder](https://github.com/robotastic/trunk-recorder) builds with the [SDRPlay API v3.07](https://www.sdrplay.com/api/) installed along with [Taclane's trunk-recorder-mqtt-status fork](https://github.com/taclane/trunk-recorder-mqtt-status) .
 
